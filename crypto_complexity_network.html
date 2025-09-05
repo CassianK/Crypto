@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가상자산의 복잡한 현실</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+        
+        #network {
+            width: 100%;
+            height: 600px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 8px;
+            pointer-events: none;
+            font-size: 0.9em;
+            max-width: 250px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .node-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">가상자산의 복잡한 현실</h1>
+            <p class="subtitle">단순한 답이 없는 세상을 이해하기</p>
+        </div>
+        
+        <div class="controls">
+            <button class="filter-btn active" onclick="filterNodes('all')">전체 보기</button>
+            <button class="filter-btn" onclick="filterNodes('critical')">비판적 관점</button>
+            <button class="filter-btn" onclick="filterNodes('supportive')">옹호적 관점</button>
+            <button class="filter-btn" onclick="filterNodes('data')">실제 데이터</button>
+            <button class="filter-btn" onclick="filterNodes('future')">미래 시나리오</button>
+        </div>
+        
+        <svg id="network"></svg>
+        
+        <div class="node-stats">
+            <div class="stat-card">
+                <div class="stat-number">0.14%</div>
+                <div class="stat-label">전체 거래 중 불법 사용</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">28%</div>
+                <div class="stat-label">미국 성인 중 보유자</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">$1,000B</div>
+                <div class="stat-label">DeFi 총예치가치</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">93%</div>
+                <div class="stat-label">규제 개발 중인 국가</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff6b6b;"></div>
+                <span>비판적 관점</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4ecdc4;"></div>
+                <span>옹호적 관점</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #45b7d1;"></div>
+                <span>중립적 데이터</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f9ca24;"></div>
+                <span>미래 시나리오</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tooltip"></div>
+
+    <script>
+        // 네트워크 데이터 정의
+        const nodes = [
+            // 중심 노드
+            { id: "center", name: "가상자산 현실", type: "center", size: 25, description: "복잡하고 다면적인 현상", x: 0, y: 0 },
+            
+            // 비판적 관점 노드들
+            { id: "money_laundering", name: "돈세탁 우려", type: "critical", size: 15, description: "0.14% 불법 거래, 하지만 과장된 인식", category: "critical" },
+            { id: "regulatory_arbitrage", name: "규제 차익", type: "critical", size: 18, description: "93%국가가 규제 개발 중", category: "critical" },
+            { id: "speculation", name: "투기성", type: "critical", size: 16, description: "S&P500과 상관관계 변동", category: "critical" },
+            { id: "volatility", name: "높은 변동성", type: "critical", size: 14, description: "가격 불안정성 문제", category: "critical" },
+            
+            // 옹호적 관점 노드들
+            { id: "innovation", name: "금융 혁신", type: "supportive", size: 20, description: "DeFi TVL 1조 달러 돌파", category: "supportive" },
+            { id: "inclusion", name: "금융 포용성", type: "supportive", size: 17, description: "개발도상국 10% 보유", category: "supportive" },
+            { id: "decentralization", name: "탈중앙화", type: "supportive", size: 16, description: "기존 시스템 대안 제공", category: "supportive" },
+            { id: "transparency", name: "투명성", type: "supportive", size: 15, description: "블록체인 추적 가능성", category: "supportive" },
+            
+            // 실제 데이터 노드들
+            { id: "adoption_rate", name: "채택률 증가", type: "data", size: 19, description: "미국 성인 28% 보유", category: "data" },
+            { id: "institutional", name: "기관 참여", type: "data", size: 18, description: "ETF 승인, 기관 투자 확대", category: "data" },
+            { id: "global_variation", name: "지역별 차이", type: "data", size: 16, description: "영국 47%, 한국 다양화", category: "data" },
+            { id: "correlation_changes", name: "상관관계 변화", type: "data", size: 15, description: "시장 성숙도 증가 신호", category: "data" },
+            
+            // 미래 시나리오 노드들
+            { id: "pessimistic", name: "비관적 시나리오", type: "future", size: 14, description: "규제 강화, 정당 사용자 이탈", category: "future" },
+            { id: "us_centric", name: "미국 중심 질서", type: "future", size: 17, description: "스테이블코인 달러 패권", category: "future" },
+            { id: "multipolar", name: "다극화 세상", type: "future", size: 16, description: "지역별 디지털 화폐 공존", category: "future" },
+            { id: "innovation_breakthrough", name: "혁신적 돌파", type: "future", size: 15, description: "예상치 못한 새 시스템", category: "future" }
+        ];
+        
+        const links = [
+            // 중심에서 각 카테고리로
+            { source: "center", target: "money_laundering", strength: 3 },
+            { source: "center", target: "regulatory_arbitrage", strength: 4 },
+            { source: "center", target: "innovation", strength: 5 },
+            { source: "center", target: "adoption_rate", strength: 5 },
+            
+            // 비판적 관점들 간 연결
+            { source: "money_laundering", target: "regulatory_arbitrage", strength: 4 },
+            { source: "regulatory_arbitrage", target: "speculation", strength: 3 },
+            { source: "speculation", target: "volatility", strength: 4 },
+            
+            // 옹호적 관점들 간 연결
+            { source: "innovation", target: "inclusion", strength: 4 },
+            { source: "inclusion", target: "decentralization", strength: 3 },
+            { source: "decentralization", target: "transparency", strength: 3 },
+            
+            // 데이터들 간 연결
+            { source: "adoption_rate", target: "institutional", strength: 4 },
+            { source: "institutional", target: "global_variation", strength: 3 },
+            { source: "global_variation", target: "correlation_changes", strength: 3 },
+            
+            // 미래 시나리오들 간 연결
+            { source: "pessimistic", target: "us_centric", strength: 2 },
+            { source: "us_centric", target: "multipolar", strength: 2 },
+            { source: "multipolar", target: "innovation_breakthrough", strength: 3 },
+            
+            // 크로스 카테고리 연결들
+            { source: "regulatory_arbitrage", target: "pessimistic", strength: 3 },
+            { source: "innovation", target: "innovation_breakthrough", strength: 4 },
+            { source: "adoption_rate", target: "multipolar", strength: 3 },
+            { source: "transparency", target: "correlation_changes", strength: 2 },
+            { source: "inclusion", target: "global_variation", strength: 3 }
+        ];
+        
+        // 색상 스케일 정의
+        const colorScale = {
+            center: "#ffffff",
+            critical: "#ff6b6b",
+            supportive: "#4ecdc4", 
+            data: "#45b7d1",
+            future: "#f9ca24"
+        };
+        
+        // SVG 설정
+        const svg = d3.select("#network");
+        const width = 1000;
+        const height = 600;
+        svg.attr("width", width).attr("height", height);
+        
+        const g = svg.append("g");
+        
+        // 툴팁 설정
+        const tooltip = d3.select(".tooltip");
+        
+        // 줌 기능
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 3])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+        
+        svg.call(zoom);
+        
+        // 시뮬레이션 설정
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(d => 80 + d.strength * 10))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(d => d.size + 5));
+        
+        // 링크 그리기
+        const link = g.append("g")
+            .selectAll("line")
+            .data(links)
+            .enter().append("line")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6)
+            .attr("stroke-width", d => d.strength);
+        
+        // 노드 그리기
+        const node = g.append("g")
+            .selectAll("circle")
+            .data(nodes)
+            .enter().append("circle")
+            .attr("r", d => d.size)
+            .attr("fill", d => colorScale[d.type])
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 2)
+            .style("cursor", "pointer")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+        
+        // 라벨 그리기
+        const label = g.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .enter().append("text")
+            .text(d => d.name)
+            .attr("font-size", d => d.type === "center" ? "14px" : "11px")
+            .attr("font-weight", d => d.type === "center" ? "bold" : "normal")
+            .attr("fill", "#fff")
+            .attr("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .style("pointer-events", "none");
+        
+        // 이벤트 핸들러
+        node.on("mouseover", function(event, d) {
+            tooltip.transition().duration(200).style("opacity", 1);
+            tooltip.html(`
+                <strong>${d.name}</strong><br/>
+                ${d.description}<br/>
+                <small>카테고리: ${getCategoryName(d.type)}</small>
+            `)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 10) + "px");
+            
+            // 관련 노드들 하이라이트
+            highlightConnectedNodes(d);
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition().duration(200).style("opacity", 0);
+            resetHighlight();
+        });
+        
+        // 시뮬레이션 업데이트
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+            
+            label
+                .attr("x", d => d.x)
+                .attr("y", d => d.y);
+        });
+        
+        // 드래그 함수들
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+        
+        // 필터링 함수
+        function filterNodes(category) {
+            // 버튼 활성화 상태 업데이트
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (category === 'all') {
+                node.style("opacity", 1);
+                link.style("opacity", 0.6);
+                label.style("opacity", 1);
+            } else {
+                node.style("opacity", d => 
+                    d.type === category || d.type === 'center' ? 1 : 0.2
+                );
+                link.style("opacity", d => 
+                    d.source.type === category || d.target.type === category || 
+                    d.source.type === 'center' || d.target.type === 'center' ? 0.6 : 0.1
+                );
+                label.style("opacity", d => 
+                    d.type === category || d.type === 'center' ? 1 : 0.2
+                );
+            }
+        }
+        
+        // 하이라이트 함수들
+        function highlightConnectedNodes(targetNode) {
+            const connectedNodes = new Set();
+            connectedNodes.add(targetNode.id);
+            
+            links.forEach(link => {
+                if (link.source.id === targetNode.id) {
+                    connectedNodes.add(link.target.id);
+                } else if (link.target.id === targetNode.id) {
+                    connectedNodes.add(link.source.id);
+                }
+            });
+            
+            node.style("opacity", d => connectedNodes.has(d.id) ? 1 : 0.3);
+            link.style("opacity", d => 
+                connectedNodes.has(d.source.id) && connectedNodes.has(d.target.id) ? 1 : 0.1
+            );
+            label.style("opacity", d => connectedNodes.has(d.id) ? 1 : 0.3);
+        }
+        
+        function resetHighlight() {
+            node.style("opacity", 1);
+            link.style("opacity", 0.6);
+            label.style("opacity", 1);
+        }
+        
+        function getCategoryName(type) {
+            const names = {
+                center: "중심 개념",
+                critical: "비판적 관점", 
+                supportive: "옹호적 관점",
+                data: "실제 데이터",
+                future: "미래 시나리오"
+            };
+            return names[type] || type;
+        }
+        
+        // 초기 애니메이션
+        node.attr("r", 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 50)
+            .attr("r", d => d.size);
+        
+        label.style("opacity", 0)
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 50 + 500)
+            .style("opacity", 1);
+    </script>
+</body>
+</html>
